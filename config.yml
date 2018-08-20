@@ -1,0 +1,288 @@
+# default update interval
+interval: 432100
+fda:
+  # maximum collections to index
+  collections: 1000
+# generator "macro" functions that can be used as generator keys, passing arguments as an object
+generators:
+# field templates. each collection can have 0 or more templates that are unioned, along with custom fields that take precedence
+templates:
+  # standard translations for dublin core, as used in FDA
+  traditional:
+    collection: parentCollection.name
+    id:
+      paste:
+      - "fda:"
+      - handle: "http://hdl.handle.net/$handle"
+    creator: dc.contributor.author
+    title: dc.title
+    date: dc.date.issued
+    description: dc.description
+    format: dc.format
+    citation: dc.identifier.citation
+    relation: dc.identifier.citation
+    available: dc.identifier.uri
+    identifier:
+      # concatenate all field value lists
+      - dc.identifier.uri
+      - dc.identifier.citation
+    publisher: dc.publisher
+    rights: dc.rights
+    subject: dc.subject
+    type: dc.type
+  # standard translations for DLTS viewer core
+  viewer:
+    collection: sm_collection_label
+    id:
+      paste:
+      - _key
+      - ":"
+      - handle: ss_handle
+    available: ss_handle
+    creator: sm_author
+    data_provider:
+      string: "NYU"
+    date:
+      field: ss_publication_date_text
+      date: "%B %Y"
+    description:
+      paste:
+        - sm_collection_label
+        - paste:
+          - " "
+          - sm_field_volume
+          default: ""
+        - ", ("
+        - field: ss_publication_date_text
+          default: ""
+        - ")"
+    identifier: ss_handle
+    language: sm_language_code
+    publisher: sm_publisher
+    series: sm_field_volume
+    subject: sm_subject_label
+    title: ss_title
+    type:
+      string: "Journal"
+  dlib:
+    collection: _name
+    id: "$_key:$identifier"
+    identifier: identifier
+    title: entity_title
+    available: handle
+    citation: handle
+    date: publication_date
+    description: description
+    subject: subject
+    creator: editor
+    language: language
+collections:
+  # key is unique collection identifier
+  vinopal:
+    source: FDA
+    hdl: 27729
+    template: traditional
+  april:
+    source: FDA
+    hdl: 34767
+    template: traditional
+  archaeology:
+    source: FDA
+    hdl: 38228
+    template: traditional
+  Data Service Collection:
+    source: FDA
+    hdl: 33611
+    template: traditional
+    fields:
+     relation: dc.relation.ispartofseries 
+  ngo:
+    source: FDA
+    hdl: 33605
+    template: traditional
+    fields:
+      publisher:
+        paste:
+        - field: dc.publisher.place
+          default: ""
+        - ":"
+        - dc.publisher
+      type:
+        # fixed value
+        string: "Report"
+  fdm:
+    source: DLTS
+    core: viewer
+    code: fdm
+    template: viewer
+  swkr:
+    source: DLTS
+    core: viewer
+    code: swkr 
+    template: viewer
+  theliberator:
+    source: DLTS
+    core: viewer
+    code: theliberator
+    template: viewer
+  themasses:
+    source: DLTS
+    core: viewer
+    code: themasses
+    template: viewer
+    fields:
+     description:
+      string: 'The Masses, a richly illustrated radical magazine, was published monthly in New York from 1911 until 1917, when it was suppressed by the government for its anti-war and anti-government perspective. The Masses blended art and politics and included fiction, nonfiction, poetry, and illustrations by many of the leading radical figures of the day.' 
+  fawf:
+    source: DLTS
+    core: viewer
+    code: fawf 
+    template: viewer
+  nyupress:
+    source: DLTS
+    core: nyupress
+    code: oa-books
+    name: "NYU Press Open Access Books"
+    fields:
+      collection: _name
+      id: "$_key:$id"
+      identifier: id
+      isbn: id
+      title: title
+      creator: author
+      available: handle
+      citation: handle
+      date: date
+      description: description
+      type:
+        string: "Book"
+      language: language
+      format:
+        string: "Book"
+  rosie:
+    source: DLib
+    path: "rosie/content.json"
+    name: "The Real Rosie the Riveter Project"
+    template: dlib
+    fields:
+      type:
+        string: "Video"
+      format:
+        string: "Video"
+  sdr:
+    source: SDR
+    name: "Spatial Data Repository"
+    fields:
+      collection: _name
+      id:
+        paste:
+        - _key
+        - ":"
+        - handle: dc_identifier_s
+      identifier: dc_identifier_s
+      available: "https://geo.nyu.edu/catalog/$layer_slug_s"
+      title: dc_title_s
+      description: dc_description_s
+      publisher: dc_publisher_s
+      type: "Geospatial Data"
+      language: dc_language_s
+      format: "Geospatial Data"
+      creator: dc_creator_sm
+      subject: dc_subject_sm
+      date: dct_issued_s
+      rights: dc_rights_s
+      data_provider: dct_provenance_s
+      geometry: layer_geom_type_s
+      subject_spatial: dct_spatial_sm
+      subject_temporal: dct_temporal_sm
+  woj:
+    source: SpecialCollections
+    filters:
+      collection_sim: 'David Wojnarowicz Papers'
+      dao_sim: 'Online Access'
+      format_sim: 'Archival Object'
+    fields:
+      collection: collection_ssm
+      id: "$_key:$_key$_ref_ssi"
+      identifier: _ref_ssi
+      date: unitdate_ssm
+      available:
+        paste:
+          - "http://dlib.nyu.edu/findingaids/html/"
+          - repository_ssi
+          - "/"
+          - ead_ssi
+          - "/dsc"
+          - field: _parent_ssm
+            limit: 1
+          - ".html#"
+          - _ref_ssi
+      title: unittitle_ssm
+      type: format_ssm
+      location: location_ssm
+      repo:
+        match:
+          ^fales$:    "The Fales Library & Special Collections"
+          ^tamwag$:   "Tamiment Library & Wagner Labor Archives"
+          ^archives$: "New York University Archives"
+        field: repository_ssi
+      data_provider:
+        string: 'NYU'
+      relation:
+        value:
+          - collection_ssm
+          - parent_unittitles_ssm
+        join: ": "
+  mss_496:
+    source: SpecialCollections
+    filters:
+      collection_sim: 'New York University Collection of Contemporary Composers'' Websites'
+      format_sim: 'Archival Object'
+    fields:
+      collection: collection_ssm
+      id: "$_key:$_key$_ref_ssi"
+      identifier: _ref_ssi
+      date: unitdate_ssm
+      available:
+        paste:
+          - "http://dlib.nyu.edu/findingaids/html/fales/mss_496/dsc"
+          - ref_ssi
+          - string: ".html"
+      title: unittitle_ssm
+      type: format_ssm
+      location: location_ssm
+      repo:
+        match:
+          ^fales$:    "The Fales Library & Special Collections"
+          ^tamwag$:   "Tamiment Library & Wagner Labor Archives"
+          ^archives$: "New York University Archives"
+        field: repository_ssi
+      data_provider:
+        string: 'NYU'
+      relation:
+        value:
+          - collection_ssm
+          - parent_unittitles_ssm
+        join: ": "
+  awol:
+    source: ISAW
+    name: "AWOL"
+    fields:
+      collection: _name
+      id: "$_key:$domain/$resource_key"
+      title: title
+      language: languages
+      subject: keywords 
+      description: description
+      available: url 
+      identifier: 
+          - identifiers.issn.generic
+          - identifiers.issn.electronic
+      ISSN: 
+          - identifiers.issn.generic
+          - identifiers.issn.electronic
+      author: authors
+      contributor:
+          - contributors
+          - editors
+      dc_subject_spatial: places
